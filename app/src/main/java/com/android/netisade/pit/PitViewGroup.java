@@ -24,8 +24,10 @@ public class PitViewGroup extends ViewGroup {
     private ArrayList<PitLineView> lines = new ArrayList<>();
     private final int NUM_OF_POINT_TO_INIT = 5;
     boolean initialized = false;
-    private int screenWidth;
-    private int screenHeight;
+    public static int screenWidth;
+    public static int screenHeight;
+    public static final int LOWER_MARGIN = 450;
+    public static final int UPPER_MARGIN = 50;
     private int defaultXposNewPoint;
     private int defaultYposNewPoint;
 

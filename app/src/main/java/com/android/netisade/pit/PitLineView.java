@@ -22,6 +22,9 @@ public class PitLineView extends View {
         super(context);
         this.startPoint = startPoint;
         this.endPoint = endPoint;
+        paint = new Paint();
+        paint.setColor(Color.BLUE);
+        paint.setStrokeWidth(PAINT_STROKE_WIDTH);
         setLayoutParams(new PitViewGroup.LayoutParams((int) (endPoint.getX() - startPoint.getX()),
                 (int) Math.abs(startPoint.getY() - endPoint.getY())));
         if(startPoint.getY()<endPoint.getY()) {
@@ -38,9 +41,6 @@ public class PitLineView extends View {
     protected void onDraw(Canvas canvas)
     {
         super.onDraw(canvas);
-        paint = new Paint();
-        paint.setColor(Color.BLUE);
-        paint.setStrokeWidth(PAINT_STROKE_WIDTH);
         int canvasH = canvas.getHeight();
         int canvasW = canvas.getWidth();
         if(startPoint.getY()<endPoint.getY())

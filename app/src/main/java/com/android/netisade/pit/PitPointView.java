@@ -40,6 +40,7 @@ public class PitPointView extends View
         canvas.drawOval(rectPosition, paint);
     }
 
+
     public boolean onTouchEvent (MotionEvent event)
     {
         changePos(event.getX()+getX(),event.getY()+getY());
@@ -48,7 +49,9 @@ public class PitPointView extends View
 
     public void changePos(float newX,float newY)
     {
-        setX(newX);
-        setY(newY);
+        if(newX<PitViewGroup.screenWidth-POINT_SIZE_PIXELS)
+            setX(newX);
+        if(newY<PitViewGroup.screenHeight-PitViewGroup.LOWER_MARGIN && newY>PitViewGroup.UPPER_MARGIN)
+            setY(newY);
     }
 }
