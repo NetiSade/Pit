@@ -14,6 +14,8 @@ import android.widget.Button;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Random;
+
 
 /**
  * Created by nsade on 08-Jan-18.
@@ -53,25 +55,40 @@ public class PitViewGroup extends ViewGroup {
             addButton(context);
             getScreenSize(context);
             addAxis(context);
-            PitPointView p1 = new PitPointView(context, 200, 500);
-            PitPointView p2 = new PitPointView(context, 400, 600);
-            PitPointView p3 = new PitPointView(context, 300, 300);
-            PitPointView p4 = new PitPointView(context, 800, 1000);
-            PitPointView p5 = new PitPointView(context, 1000, 800);
-            points.add(p1);
-            points.add(p2);
-            points.add(p3);
-            points.add(p4);
-            points.add(p5);
-            sortPointsArray();
-            for (PitPointView point : points){
+            Random rand = new Random();
+            for (int i =0;i<NUM_OF_POINT_TO_INIT;i++) {
+                int x = rand.nextInt(screenWidth - PitPointView.POINT_SIZE_PIXELS);
+                int y = UPPER_MARGIN + rand.nextInt(screenHeight-LOWER_MARGIN);
+                PitPointView point = new PitPointView(context,x,y);
+                points.add(point);
                 addPointListener(point,context);
             }
+            sortPointsArray();
             initialized = true;
         }
         for (PitPointView point : points)
             this.addView(point);
-        drawLines(context);
+        drawAllLines(context);
+    }
+
+    private void drawAllLines(Context context)
+    {
+        //remove lines
+        if(lines.size()>0)
+            for(PitLineView line: lines)
+                removeView(line);
+        lines.clear();
+
+        //create lines
+        for(int i = 0;i<points.size()-1;i++)
+        {
+            PitPointView pointA = points.get(i);
+            PitPointView pointB = points.get(i+1);
+            PitLineView line = new PitLineView(context,pointA,pointB);
+            lines.add(line);
+            this.addView(line);
+        }
+
     }
 
     private void addAxis(Context context)
@@ -97,13 +114,23 @@ public class PitViewGroup extends ViewGroup {
         defaultYposNewPoint = screenHeight/2-PitPointView.POINT_SIZE_PIXELS/2-PitPointView.TOUCH_FACTOR/2;
     }
 
-    private void addPointListener ( PitPointView point,final Context context)
+    private void addPointListener (final PitPointView point, final Context context)
     {
         point.setOnTouchListener(new OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                sortPointsArray();
-                drawLines(context);
+                int pointIndex = points.indexOf(point);
+                if (pointIndex>0 && points.get(pointIndex-1).getX()>point.getX())
+                {
+                    int indexToSwap = points.indexOf(points.get(pointIndex-1));
+                    Collections.swap(points,indexToSwap,pointIndex);
+                }
+                else if (pointIndex<points.size()-1 && points.get(pointIndex+1).getX()<point.getX())
+                {
+                    int indexToSwap = points.indexOf(points.get(pointIndex+1));
+                    Collections.swap(points,indexToSwap,pointIndex);
+                }
+                drawLines(context,pointIndex);
                 return false;
             }
         });
@@ -126,13 +153,39 @@ public class PitViewGroup extends ViewGroup {
     public void addNewPoint(Context context)
     {
         PitPointView newPoint = new PitPointView(context, defaultXposNewPoint, defaultYposNewPoint);
-        insertToArray(newPoint);
+        int ind = insertToArray(newPoint);
         addPointListener(newPoint,context);
         this.addView(newPoint);
-        drawLines(context);
+        drawLinesOfNewPoint(context,ind);
     }
 
-    private void insertToArray(PitPointView newPoint)
+    private void drawLinesOfNewPoint(Context context, int ind)
+    {
+        if (ind == 0)
+        {
+            PitLineView line = new PitLineView(context,points.get(0), points.get(1));
+            this.addView(line);
+            lines.add(0,line);
+            return;
+        }
+        else {
+            if (ind == points.size() - 1) {
+                PitLineView line = new PitLineView(context, points.get(ind - 1), points.get(ind));
+                this.addView(line);
+                lines.add(line);
+            } else {
+                PitLineView lineA = new PitLineView(context, points.get(ind - 1), points.get(ind));
+                PitLineView lineB = new PitLineView(context, points.get(ind), points.get(ind + 1));
+                removeView(lines.get(ind - 1));
+                this.addView(lineA);
+                this.addView(lineB);
+                lines.set(ind - 1, lineA);
+                lines.add(ind, lineB);
+            }
+        }
+    }
+
+    private int insertToArray(PitPointView newPoint)
     {
         boolean added = false;
         int i = 0;
@@ -146,17 +199,50 @@ public class PitViewGroup extends ViewGroup {
             }
             i++;
         }
-        if (!added)
+        if (!added) {
             points.add(newPoint);//Add to the end of the list
+            return points.size()-1;
+        }
+        return i-1;
     }
 
-    private void drawLines(Context context)
+    private void drawLines(Context context, int pointOnMoveInd)
     {
+        /*
         //remove lines
         if(lines.size()>0)
             for(PitLineView line: lines)
                 removeView(line);
+        lines.clear();
+        */
+        if (pointOnMoveInd == 0)
+        {
+            removeView(lines.get(0));
+            PitLineView newLine = new PitLineView(context,points.get(0),points.get(1));
+            lines.set(0,newLine);
+            this.addView(newLine);
+        }
+        else if (pointOnMoveInd == points.size()-1)
+        {
+            removeView(lines.get(lines.size()-1));
+            PitLineView newLine = new PitLineView(context,points.get(points.size()-2),points.get(points.size()-1));
+            lines.set(lines.size()-1,newLine);
+            this.addView(newLine);
+        }
 
+        else
+        {
+            removeView(lines.get(pointOnMoveInd-1));
+            removeView(lines.get(pointOnMoveInd));
+            PitLineView newLineA = new PitLineView(context,points.get(pointOnMoveInd-1),points.get(pointOnMoveInd));
+            PitLineView newLineB = new PitLineView(context,points.get(pointOnMoveInd),points.get(pointOnMoveInd+1));
+            lines.set(pointOnMoveInd-1,newLineA);
+            lines.set(pointOnMoveInd,newLineB);
+            this.addView(newLineA);
+            this.addView(newLineB);
+        }
+
+        /*
         //create lines
         for(int i = 0;i<points.size()-1;i++)
         {
@@ -166,6 +252,7 @@ public class PitViewGroup extends ViewGroup {
             lines.add(line);
             this.addView(line);
         }
+        */
     }
 
     private void sortPointsArray ()
