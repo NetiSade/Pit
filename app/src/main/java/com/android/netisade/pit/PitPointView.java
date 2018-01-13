@@ -5,19 +5,22 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.support.annotation.NonNull;
 import android.view.MotionEvent;
 import android.view.View;
+
+import java.util.Comparator;
 
 /**
  * Created by nsade on 09-Jan-18.
  */
 
-public class PitPointView extends View
+public class PitPointView extends View implements Comparable<PitPointView>
 {
     private Paint paint;
     private RectF rectPosition;
-    public final static int POINT_SIZE_PIXELS = 60;
-    public final static int TOUCH_FACTOR = 20;
+    public final static int POINT_SIZE_PIXELS = 90;
+    public final static int TOUCH_FACTOR = 50;
 
     public PitPointView(Context context,int xPos, int yPos)
     {
@@ -53,5 +56,10 @@ public class PitPointView extends View
             setX(newX);
         if(newY<PitViewGroup.screenHeight-PitViewGroup.LOWER_MARGIN && newY>PitViewGroup.UPPER_MARGIN)
             setY(newY);
+    }
+
+    @Override
+    public int compareTo(@NonNull PitPointView pointToCompare) {
+        return this.getX() < pointToCompare.getX() ? -1 : (this.getX() < pointToCompare.getX()) ? 1 : 0;
     }
 }

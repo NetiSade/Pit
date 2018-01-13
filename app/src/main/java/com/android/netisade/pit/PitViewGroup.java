@@ -107,7 +107,6 @@ public class PitViewGroup extends ViewGroup {
                 return false;
             }
         });
-
     }
 
     private void addButton(final Context context)
@@ -132,7 +131,6 @@ public class PitViewGroup extends ViewGroup {
         this.addView(newPoint);
         drawLines(context);
     }
-
 
     private void insertToArray(PitPointView newPoint)
     {
@@ -172,14 +170,8 @@ public class PitViewGroup extends ViewGroup {
 
     private void sortPointsArray ()
     {
-        Collections.sort(points, new Comparator<PitPointView>() {
-            @Override
-            public int compare(PitPointView first, PitPointView secend) {
-                return first.getX() < secend.getX() ? -1 : (secend.getX() < first.getX()) ? 1 : 0;
-            }
-        });
+        Collections.sort(points);
     }
-
 
     /**
      * Ask all children to measure themselves and compute the measurement of this
