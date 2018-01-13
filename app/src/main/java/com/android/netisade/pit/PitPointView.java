@@ -9,8 +9,6 @@ import android.support.annotation.NonNull;
 import android.view.MotionEvent;
 import android.view.View;
 
-import java.util.Comparator;
-
 /**
  * Created by nsade on 09-Jan-18.
  */

@@ -286,30 +286,10 @@ public class PitViewGroup extends ViewGroup {
         }
     }
 
-
-    @Override
-    public LayoutParams generateLayoutParams(AttributeSet attrs) {
-        return new PitViewGroup.LayoutParams(getContext(), attrs);
-    }
-
-    @Override
-    protected LayoutParams generateDefaultLayoutParams() {
-        return new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-    }
-
-    @Override
-    protected ViewGroup.LayoutParams generateLayoutParams(ViewGroup.LayoutParams p) {
-        return new LayoutParams(p);
-    }
-
-    @Override
-    protected boolean checkLayoutParams(ViewGroup.LayoutParams p) {
-        return p instanceof LayoutParams;
-    }
-
     /**
      * Custom per-child layout information.
      */
+
     public static class LayoutParams extends MarginLayoutParams {
         /**
          * The gravity to apply with the View to which these layout parameters
@@ -323,26 +303,10 @@ public class PitViewGroup extends ViewGroup {
 
         public int position = POSITION_MIDDLE;
 
-        public LayoutParams(Context c, AttributeSet attrs) {
-            super(c, attrs);
-
-            // Pull the layout param values from the layout XML during
-            // inflation.  This is not needed if you don't care about
-            // changing the layout behavior in XML.
-            TypedArray a = c.obtainStyledAttributes(attrs, R.styleable.CustomLayoutLP);
-            gravity = a.getInt(R.styleable.CustomLayoutLP_android_layout_gravity, gravity);
-            position = a.getInt(R.styleable.CustomLayoutLP_layout_position, position);
-            a.recycle();
-        }
-
         public LayoutParams(int width, int height) {
             super(width, height);
         }
 
-        public LayoutParams(ViewGroup.LayoutParams source) {
-            super(source);
-        }
     }
-
 
 }
