@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Pit</string>
+    <string name="add_point_button_text">Add Point!</string>
+</resources>
