@@ -17,71 +17,78 @@ import java.util.Random;
 
 /**
  * Created by nsade on 08-Jan-18.
+ * This class represents the graph by a axes, points and lines.
+ * In the class functions to initialize the graph, handle the movement of a point and add a point,
+ * handle the screen rotation, and more.
  */
 
 public class PitViewGroup extends ViewGroup {
-    private ArrayList<PitPointView> points = new ArrayList<>();
-    private ArrayList<PitLineView> lines = new ArrayList<>();
-    private final int NUM_OF_POINT_TO_INIT = 5;
-    boolean initialized;
-    public static int screenWidth;
-    public static int screenHeight;
+    //The boundaries of the area where a point can be placed.
     public static final int LOWER_MARGIN = 500;
     public static final int UPPER_MARGIN = 120;
+
+    public static int screenWidth;
+    public static int screenHeight;
+    private final int NUM_OF_POINT_TO_INIT = 5;
+
+    private ArrayList<PitPointView> points = new ArrayList<>();//An array that holds at any given moment the points displayed on the graph
+    private ArrayList<PitLineView> lines = new ArrayList<>();//An array that holds at any given moment the lines displayed on the graph
+    //Defaults position to place a new point on the graph (the origin axis)
     private int defaultXPos;
     private int defaultYPos;
+
     private Random rand = new Random();
+    //Axis lines
     private View yLine;
     private View xLine;
 
-
-    /** The amount of space used by children in the left gutter. */
-    private int mLeftWidth;
-
-    /** The amount of space used by children in the right gutter. */
-    private int mRightWidth;
-
-    /** These are used for computing child frames based on their gravity. */
-    private final Rect mTmpContainerRect = new Rect();
+    private final Rect mTmpContainerRect = new Rect();//These are used for computing child frames based on their gravity.
     private final Rect mTmpChildRect = new Rect();
+    private int mLeftWidth;//The amount of space used by children in the left gutter.
+    private int mRightWidth;//The amount of space used by children in the right gutter.
 
     public PitViewGroup(Context context, AttributeSet attrs)
     {
         super(context, attrs);
     }
 
+    /**
+     * This function is called only by OnCreate() It places the axes, the new points and the button.
+     * @param context
+     */
     public void init(final Context context)
     {
-        if(!initialized) {
-            addButton(context);
-            getScreenSize(context);
-            addAxis(context);
-            for (int i =0;i<NUM_OF_POINT_TO_INIT;i++) {
-                int x = rand.nextInt(screenWidth - PitPointView.POINT_SIZE_PIXELS);
-                int y = UPPER_MARGIN + rand.nextInt(screenHeight-LOWER_MARGIN-UPPER_MARGIN);
-                PitPointView point = new PitPointView(context,x,y);
-                points.add(point);
-                addPointListener(point,context);
-            }
-            sortPointsArray();
-            initialized = true;
+        addButton(context);//Add "Add new point" button
+        getScreenSize(context);
+        addAxis(context);
+        for (int i =0;i<NUM_OF_POINT_TO_INIT;i++) {
+            int x = rand.nextInt(screenWidth - PitPointView.POINT_SIZE_PIXELS);
+            int y = UPPER_MARGIN + rand.nextInt(screenHeight-LOWER_MARGIN-UPPER_MARGIN);
+            PitPointView point = new PitPointView(context,x,y);
+            points.add(point);
+            addPointListener(point,context);
         }
+        sortPointsArray();
         for (PitPointView point : points)
             this.addView(point);
         drawAllLines(context);
     }
 
+    /**
+     * Called only by onConfigurationChanged(), takes care of repositioning the elements when the screen rotates.
+     * @param context
+     */
     public void onRotate(Context context)
     {
         for (PitPointView point : points)
-            convertPoint(point);
-        changScreenSize(context);
-        changeAxis(context);
-        drawAllLines(context);
-        //addButton(context);
+            convertPoint(point);//Reposition the point
+        changScreenSize();//Switch between width and height
+        repositionAxis();
+        drawAllLines(context);//Remove the old lines and create new ons depending on the new location of the points.
     }
 
-    private void changScreenSize(Context context)
+    //Called in the case of screen rotation, switching between width and length and reset the default point
+    private void changScreenSize()
     {
         int temp = screenWidth;
         screenWidth = screenHeight;
@@ -90,6 +97,7 @@ public class PitViewGroup extends ViewGroup {
         defaultYPos = screenHeight/2-PitPointView.POINT_SIZE_PIXELS/2-PitPointView.TOUCH_FACTOR/2;
     }
 
+    //Keeps the location of the point in the space and repositions it while rotating a screen.
     private void convertPoint( PitPointView point)
     {
         float oldX = point.getX();
@@ -107,15 +115,17 @@ public class PitViewGroup extends ViewGroup {
         point.setY(newY);
     }
 
+    //Called in the case of screen rotation and when you place the lines for the first time.
+    // The function passes all the points and draws the lines.
     private void drawAllLines(Context context)
     {
-        //remove lines
+        //Remove lines, if any
         if(lines.size()>0)
             for(PitLineView line: lines)
                 removeView(line);
-        lines.clear();
+        lines.clear();//Empty the array
 
-        //create lines
+        //Create lines
         for(int i = 0;i<points.size()-1;i++)
         {
             PitPointView pointA = points.get(i);
@@ -141,7 +151,7 @@ public class PitViewGroup extends ViewGroup {
         this.addView(xLine);
     }
 
-    private void changeAxis(Context context)
+    private void repositionAxis()
     {
         yLine.setLayoutParams(new PitViewGroup.LayoutParams(1,screenHeight));
         xLine.setLayoutParams(new PitViewGroup.LayoutParams(screenWidth,1));
@@ -158,6 +168,13 @@ public class PitViewGroup extends ViewGroup {
         defaultYPos = screenHeight/2-PitPointView.POINT_SIZE_PIXELS/2-PitPointView.TOUCH_FACTOR/2;
     }
 
+    /**
+     * This listener is responsible that during the movement of a point:
+     * 1. The array of points will remain sorted
+     * 2. The lines will be adjusted to the new position.
+     * @param point A point in motion
+     * @param context
+     */
     private void addPointListener (final PitPointView point, final Context context)
     {
         point.setOnTouchListener(new OnTouchListener() {
@@ -203,6 +220,7 @@ public class PitViewGroup extends ViewGroup {
         drawLinesOfNewPoint(context,ind);
     }
 
+    // Insert the new point into the correct position in the ArrayList and draw the lines accordingly
     private void drawLinesOfNewPoint(Context context, int ind)
     {
         if (ind == 0)
@@ -229,6 +247,7 @@ public class PitViewGroup extends ViewGroup {
         }
     }
 
+    //Add new point to the right position in the array according the X value
     private int insertToArray(PitPointView newPoint)
     {
         boolean added = false;
@@ -250,15 +269,13 @@ public class PitViewGroup extends ViewGroup {
         return i-1;
     }
 
+    /**
+     * Redraw the required lines during a point move
+     * @param context
+     * @param pointOnMoveInd
+     */
     private void drawLines(Context context, int pointOnMoveInd)
     {
-        /*
-        //remove lines
-        if(lines.size()>0)
-            for(PitLineView line: lines)
-                removeView(line);
-        lines.clear();
-        */
         if (pointOnMoveInd == 0)
         {
             removeView(lines.get(0));
@@ -273,7 +290,6 @@ public class PitViewGroup extends ViewGroup {
             lines.set(lines.size()-1,newLine);
             this.addView(newLine);
         }
-
         else
         {
             removeView(lines.get(pointOnMoveInd-1));
@@ -411,16 +427,14 @@ public class PitViewGroup extends ViewGroup {
      */
 
     public static class LayoutParams extends MarginLayoutParams {
+        public static int POSITION_MIDDLE = 0;
+        public static int POSITION_LEFT = 1;
+        public static int POSITION_RIGHT = 2;
         /**
          * The gravity to apply with the View to which these layout parameters
          * are associated.
          */
         public int gravity = Gravity.TOP | Gravity.START;
-
-        public static int POSITION_MIDDLE = 0;
-        public static int POSITION_LEFT = 1;
-        public static int POSITION_RIGHT = 2;
-
         public int position = POSITION_MIDDLE;
 
         public LayoutParams(int width, int height) {

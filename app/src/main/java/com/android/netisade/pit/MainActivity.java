@@ -13,9 +13,14 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Context context = getApplicationContext();
         PitViewGroup PVG = findViewById(R.id.pit_viewgroup);
-        PVG.init(context);
+        PVG.init(context);//Position the number axis and place 5 new points in random places.
     }
 
+    /***
+     * This function is used in case of screen rotation,
+     * Do not init the viewGroup again, but adjust the points to the new orientation.
+     * @param newConfig
+     */
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);

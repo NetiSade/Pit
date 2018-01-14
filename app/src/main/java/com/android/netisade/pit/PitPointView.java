@@ -11,6 +11,8 @@ import android.view.View;
 
 /**
  * Created by nsade on 09-Jan-18.
+ * This class represents a point in space and contains functions for drawing the point
+ * and listener that updates the position of the point while dragging it.
  */
 
 public class PitPointView extends View implements Comparable<PitPointView>
@@ -18,14 +20,15 @@ public class PitPointView extends View implements Comparable<PitPointView>
     private Paint paint;
     private RectF rectPosition;
     public final static int POINT_SIZE_PIXELS = 90;
-    public final static int TOUCH_FACTOR = 50;
+    public final static int TOUCH_FACTOR = 50;//Margins are not visible for better user experience
 
     public PitPointView(Context context,int xPos, int yPos)
     {
         super(context);
         setX(xPos);
         setY(yPos);
-        setLayoutParams(new PitViewGroup.LayoutParams(POINT_SIZE_PIXELS+TOUCH_FACTOR,POINT_SIZE_PIXELS+TOUCH_FACTOR));
+        setLayoutParams(new PitViewGroup.LayoutParams(POINT_SIZE_PIXELS+TOUCH_FACTOR,
+                POINT_SIZE_PIXELS+TOUCH_FACTOR));
     }
 
     protected void onDraw(Canvas canvas)
@@ -41,7 +44,7 @@ public class PitPointView extends View implements Comparable<PitPointView>
         canvas.drawOval(rectPosition, paint);
     }
 
-
+    //Change the position of a point according to the finger
     public boolean onTouchEvent (MotionEvent event)
     {
         changePos(event.getX()+getX(),event.getY()+getY());
