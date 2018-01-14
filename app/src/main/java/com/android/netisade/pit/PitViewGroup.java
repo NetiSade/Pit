@@ -1,7 +1,6 @@
 package com.android.netisade.pit;
 
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.util.AttributeSet;
@@ -13,7 +12,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Random;
 
 
@@ -25,13 +23,17 @@ public class PitViewGroup extends ViewGroup {
     private ArrayList<PitPointView> points = new ArrayList<>();
     private ArrayList<PitLineView> lines = new ArrayList<>();
     private final int NUM_OF_POINT_TO_INIT = 5;
-    boolean initialized = false;
+    boolean initialized;
     public static int screenWidth;
     public static int screenHeight;
-    public static final int LOWER_MARGIN = 450;
-    public static final int UPPER_MARGIN = 50;
-    private int defaultXposNewPoint;
-    private int defaultYposNewPoint;
+    public static final int LOWER_MARGIN = 500;
+    public static final int UPPER_MARGIN = 120;
+    private int defaultXPos;
+    private int defaultYPos;
+    private Random rand = new Random();
+    private View yLine;
+    private View xLine;
+
 
     /** The amount of space used by children in the left gutter. */
     private int mLeftWidth;
@@ -46,19 +48,17 @@ public class PitViewGroup extends ViewGroup {
     public PitViewGroup(Context context, AttributeSet attrs)
     {
         super(context, attrs);
-        init(context);
     }
 
-    private void init(final Context context)
+    public void init(final Context context)
     {
         if(!initialized) {
             addButton(context);
             getScreenSize(context);
             addAxis(context);
-            Random rand = new Random();
             for (int i =0;i<NUM_OF_POINT_TO_INIT;i++) {
                 int x = rand.nextInt(screenWidth - PitPointView.POINT_SIZE_PIXELS);
-                int y = UPPER_MARGIN + rand.nextInt(screenHeight-LOWER_MARGIN);
+                int y = UPPER_MARGIN + rand.nextInt(screenHeight-LOWER_MARGIN-UPPER_MARGIN);
                 PitPointView point = new PitPointView(context,x,y);
                 points.add(point);
                 addPointListener(point,context);
@@ -69,6 +69,42 @@ public class PitViewGroup extends ViewGroup {
         for (PitPointView point : points)
             this.addView(point);
         drawAllLines(context);
+    }
+
+    public void onRotate(Context context)
+    {
+        for (PitPointView point : points)
+            convertPoint(point);
+        changScreenSize(context);
+        changeAxis(context);
+        drawAllLines(context);
+        //addButton(context);
+    }
+
+    private void changScreenSize(Context context)
+    {
+        int temp = screenWidth;
+        screenWidth = screenHeight;
+        screenHeight = temp;
+        defaultXPos = screenWidth/2-PitPointView.POINT_SIZE_PIXELS/2-PitPointView.TOUCH_FACTOR/2;
+        defaultYPos = screenHeight/2-PitPointView.POINT_SIZE_PIXELS/2-PitPointView.TOUCH_FACTOR/2;
+    }
+
+    private void convertPoint( PitPointView point)
+    {
+        float oldX = point.getX();
+        float oldY = point.getY();
+        int newScreenWidth = screenHeight;
+        int newScreenHeight = screenWidth;
+        double xPercentageOfTheScreen = oldX/screenWidth;
+        double yPercentageOfTheScreen = oldY/screenHeight;
+        float newX = (float) xPercentageOfTheScreen*newScreenWidth;
+        float newY = (float) yPercentageOfTheScreen*newScreenHeight;
+        newX = Math.min(newScreenWidth-PitPointView.POINT_SIZE_PIXELS,newX);
+        newY = Math.min(newY,newScreenHeight-PitViewGroup.LOWER_MARGIN);
+        newY = Math.max(newY,UPPER_MARGIN);
+        point.setX(newX);
+        point.setY(newY);
     }
 
     private void drawAllLines(Context context)
@@ -93,8 +129,8 @@ public class PitViewGroup extends ViewGroup {
 
     private void addAxis(Context context)
     {
-        View yLine = new View(context);
-        View xLine = new View(context);
+        yLine = new View(context);
+        xLine = new View(context);
         yLine.setLayoutParams(new PitViewGroup.LayoutParams(1,screenHeight));
         xLine.setLayoutParams(new PitViewGroup.LayoutParams(screenWidth,1));
         yLine.setBackgroundColor(Color.BLACK);
@@ -105,13 +141,21 @@ public class PitViewGroup extends ViewGroup {
         this.addView(xLine);
     }
 
+    private void changeAxis(Context context)
+    {
+        yLine.setLayoutParams(new PitViewGroup.LayoutParams(1,screenHeight));
+        xLine.setLayoutParams(new PitViewGroup.LayoutParams(screenWidth,1));
+        yLine.setX(screenWidth/2);
+        xLine.setY(screenHeight/2);
+    }
+
     private void getScreenSize(Context context)
     {
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         screenWidth = metrics.widthPixels;
         screenHeight = metrics.heightPixels;
-        defaultXposNewPoint = screenWidth/2-PitPointView.POINT_SIZE_PIXELS/2-PitPointView.TOUCH_FACTOR/2;
-        defaultYposNewPoint = screenHeight/2-PitPointView.POINT_SIZE_PIXELS/2-PitPointView.TOUCH_FACTOR/2;
+        defaultXPos = screenWidth/2-PitPointView.POINT_SIZE_PIXELS/2-PitPointView.TOUCH_FACTOR/2;
+        defaultYPos = screenHeight/2-PitPointView.POINT_SIZE_PIXELS/2-PitPointView.TOUCH_FACTOR/2;
     }
 
     private void addPointListener (final PitPointView point, final Context context)
@@ -139,7 +183,7 @@ public class PitViewGroup extends ViewGroup {
     private void addButton(final Context context)
     {
         Button addPointButton = new Button(context);
-        addPointButton.setText("Add point!");
+        addPointButton.setText(R.string.add_point_button_text);
         LayoutParams lp = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
         addPointButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -152,7 +196,7 @@ public class PitViewGroup extends ViewGroup {
 
     public void addNewPoint(Context context)
     {
-        PitPointView newPoint = new PitPointView(context, defaultXposNewPoint, defaultYposNewPoint);
+        PitPointView newPoint = new PitPointView(context, defaultXPos, defaultYPos);
         int ind = insertToArray(newPoint);
         addPointListener(newPoint,context);
         this.addView(newPoint);
@@ -242,17 +286,6 @@ public class PitViewGroup extends ViewGroup {
             this.addView(newLineB);
         }
 
-        /*
-        //create lines
-        for(int i = 0;i<points.size()-1;i++)
-        {
-            PitPointView pointA = points.get(i);
-            PitPointView pointB = points.get(i+1);
-            PitLineView line = new PitLineView(context,pointA,pointB);
-            lines.add(line);
-            this.addView(line);
-        }
-        */
     }
 
     private void sortPointsArray ()

@@ -25,8 +25,11 @@ public class PitLineView extends View {
         paint = new Paint();
         paint.setColor(Color.BLUE);
         paint.setStrokeWidth(PAINT_STROKE_WIDTH);
-        setLayoutParams(new PitViewGroup.LayoutParams((int) (endPoint.getX() - startPoint.getX()),
-                (int) Math.abs(startPoint.getY() - endPoint.getY())));
+        int layoutWidth = (int)(endPoint.getX() - startPoint.getX());
+        int layoutHeight = (int) Math.abs(startPoint.getY() - endPoint.getY());
+        layoutWidth = Math.max(layoutWidth,PAINT_STROKE_WIDTH);
+        layoutHeight = Math.max(layoutHeight,PAINT_STROKE_WIDTH);
+        setLayoutParams(new PitViewGroup.LayoutParams(layoutWidth,layoutHeight));
         if(startPoint.getY()<endPoint.getY()) {
             setX(startPoint.getX() + PitPointView.TOUCH_FACTOR/2 + (PitPointView.POINT_SIZE_PIXELS / 2));
             setY(startPoint.getY() + PitPointView.TOUCH_FACTOR/2 +(PitPointView.POINT_SIZE_PIXELS / 2));
